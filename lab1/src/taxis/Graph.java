@@ -51,8 +51,6 @@ public class Graph {
 	    fd.close();
 	    System.out.println("Nodes parsing completed succesffully");
 	    nodes = new ArrayList<Node>(hashNodes.values());
-	    fd = new FileReader(nodesPATH);
-	    parser = CSVParser.parse(fd, CSVFormat.RFC4180);
 	    for (int i=0; i<allNodes.size()-1; i++) {
 	    	Node node = allNodes.get(i);
 	    	Node nextNode = allNodes.get(i+1);
