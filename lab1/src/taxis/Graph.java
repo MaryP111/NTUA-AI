@@ -1,9 +1,5 @@
 package taxis;
-
-import java.io.BufferedReader;
 import java.io.FileReader;
-
-
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -70,6 +66,83 @@ class Taxi extends Point{
 	}
 }
 
+
+class aStar{
+	public aStarResult aStarSearch(Graph g1, Node startNode, Node endNode) {
+	    HashMap<Long,ArrayList<Node>> parentsMap = new HashMap<Long,ArrayList<Node>>();
+	    HashSet<Node> visited = new HashSet<Node>();
+	    ArrayList <Node> frontier = new ArrayList<>();
+	    startNode.distanceFromStart = 0;
+	    startNode.fscore = Distance.computeDistance(startNode, endNode);
+	    frontier.clear();
+	    visited.clear();
+	    frontier.add(startNode);
+	    Node current = null;
+	    while (!frontier.isEmpty()) {
+	    	System.out.println("Frontier size" + frontier.size());
+	        current = frontier.get(0);
+	        frontier.remove(0);
+	        if(!visited.contains(current) ) {
+	            visited.add(current);
+	            if (current.key == endNode.key) {
+	                System.out.println("Found");
+	                return new aStarResult(current.distanceFromStart,parentsMap);
+	            }
+	            ArrayList<Connection> neighbors = g1.adj.get(current.key);
+	            for (int j=0;j<neighbors.size();j++) {
+	                Node neighbor=neighbors.get(j).node;
+	                if (!visited.contains(neighbor) ){  
+	                    double predictedDistance = Distance.computeDistance(neighbor, endNode);
+	                    double totalDistance =current.distanceFromStart +neighbors.get(j).cost+ predictedDistance;
+	                    if(totalDistance < neighbor.fscore ){
+	                        // update n's distance
+	                        neighbor.fscore=totalDistance;
+	                        neighbor.distanceFromStart=current.distanceFromStart+neighbors.get(j).cost;
+	                        // set parent
+	                        if (parentsMap.containsKey(neighbor.key)) {
+	                        ArrayList<Node> parents=parentsMap.get(neighbor.key);
+	                        parents.add(current);
+	                        parentsMap.put(neighbor.key,parents);
+	                        }
+	                        else {
+	                            ArrayList<Node> parents=new ArrayList<Node>();
+	                            parents.add(current);
+	                            parentsMap.put(neighbor.key,parents);
+	                        }
+	                        frontier.add(neighbor);
+	                    }
+	                }
+	            }
+	        }
+	        Collections.sort(frontier, new Comparator<Node>(){
+	        	public int compare(Node point1, Node point2){
+	        		if(point1.fscore == point2.fscore) return 0;
+	                return (point1.fscore ) < (point2.fscore)? -1 : 1;
+	                 }
+	            });
+
+	    }
+	    return null;
+	}
+}
+
+
+
+class aStarResult {
+	public double score;
+	public HashMap<Long,ArrayList<Node>> routes;
+	aStarResult(double score, HashMap<Long, ArrayList<Node>> parentsMap){
+	    this.score = score;
+	    this.routes = new HashMap<Long, ArrayList<Node>>();
+	    for (Map.Entry<Long, ArrayList<Node>> entry : parentsMap.entrySet()) {
+	        Long key = entry.getKey();
+	        ArrayList<Node> path = new ArrayList<Node>(entry.getValue());
+	        this.routes.put(key,path);
+	//        System.out.println(this.routes.get(key).get(0));
+	    }
+	}
+}
+
 public class Graph {
         public static final String clientPATH = "data/client.csv";
         public static final String nodesPATH = "data/nodes.csv";
@@ -81,7 +154,7 @@ public class Graph {
         /* all noNodes are the nodes of the graph as read from the csv file */
         public ArrayList<Node> allNodes = new ArrayList<Node>();
     	public ArrayList<Taxi> allTaxis = new ArrayList<Taxi>();
-    	
+    	private static aStar search = new aStar();
     	
         public void createGraph() throws IOException {
         	FileReader fd = new FileReader(nodesPATH);
@@ -106,8 +179,6 @@ public class Graph {
 			    allNodes.add(n);
 			}
             fd.close();
-//            System.out.println("Nodes parsing completed succesfully");
-//            System.out.println(allNodes.size());
             nodes = new ArrayList<Node>(hashNodes.values());
             for (int i=0; i<allNodes.size()-1; i++) {
                 Node node = allNodes.get(i);
@@ -137,11 +208,13 @@ public class Graph {
                 }
                 adj.put(node.key, connectionList);
                 adj.put(nextNode.key, nextNodeConnectionList);
-                }
+            }
+            System.out.println("Graph created successfully");
+            
         }
         
         public void createTaxis() throws IOException{
-        	FileReader fd = new FileReader(nodesPATH);
+        	FileReader fd = new FileReader(taxisPATH);
             CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
              for (CSVRecord line : parser) {
                  double x = Double.parseDouble(line.get(0));
@@ -151,15 +224,40 @@ public class Graph {
              }
         }
         
+        public void revert() {
+            for (int j=0;j<allNodes.size();j++) {
+                allNodes.get(j).distanceFromStart=Double.POSITIVE_INFINITY;
+                allNodes.get(j).fscore=Double.POSITIVE_INFINITY;
+            }
+        }
+        
         public void run() throws IOException {
         	Reader fd = new FileReader(clientPATH);
             CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
-            double x;
-            double y;
+            double x = 0.0;
+            double y = 0.0;
             for (CSVRecord line : parser) {
             	x = Double.parseDouble(line.get(0));
                 y = Double.parseDouble(line.get(1));
-             }
+            }
+            double minScore = Double.POSITIVE_INFINITY;
+            long taxiId = 0;
+            Node clientNode = new Node(x, y, -1);
+            Node revisedClientNode = clientNode.findNearestNode(nodes);
+            HashMap<Long, aStarResult> taxiRoutes = new HashMap<Long, aStarResult>();
+            for (Taxi j : allTaxis) {
+            	aStarResult result = search.aStarSearch(this, j.nearestNode, revisedClientNode);
+            	double score = result.score;
+            	taxiRoutes.put(j.id, result);
+            	if (score < minScore) {
+            		taxiId = j.id;
+            		minScore = score;
+            	}
+            	revert();
+            }
+            System.out.println(taxiId);
+            
+            
         }
 }
 
@@ -174,79 +272,6 @@ class Connection{
 }
 
 
-class AstarSearch {
-	public AstarResult aStarSearch(Graph g1,Node startNode,Node endNode) {
-	        HashMap<Long,ArrayList<Node>> parentsMap = new HashMap<Long,ArrayList<Node>>();
-	        HashSet<Node> visited = new HashSet<Node>();
-	        ArrayList <Node> frontier = new ArrayList<>();
-	        startNode.distanceFromStart = 0;
-	        startNode.fscore = Distance.computeDistance(startNode, endNode);
-	        frontier.clear();
-	        visited.clear();
-	        frontier.add(startNode);
-	        Node current = null;
-	        while (!frontier.isEmpty()) {
-	            current = frontier.get(0);
-	            frontier.remove(0);
-	            if(!visited.contains(current) ) {
-	                visited.add(current);
-	                if (current.key == endNode.key) {
-	                    System.out.println("Found");
-	                    return new AstarResult(current.distanceFromStart,parentsMap);
-	                }
-	                ArrayList<Connection> neighbors = g1.adj.get(current.key);
-	                for (int j=0;j<neighbors.size();j++) {
-	                    Node neighbor=neighbors.get(j).node;
-	                    if (!visited.contains(neighbor) ){  
-	                        double predictedDistance = Distance.computeDistance(neighbor, endNode);
-	                        double totalDistance =current.distanceFromStart +neighbors.get(j).cost+ predictedDistance;
-	                        if(totalDistance < neighbor.fscore ){
-	                            // update n's distance
-	                            neighbor.fscore=totalDistance;
-	                            neighbor.distanceFromStart=current.distanceFromStart+neighbors.get(j).cost;
-	                            // set parent
-	                            if (parentsMap.containsKey(neighbor.key)) {
-	                            ArrayList<Node> parents=parentsMap.get(neighbor.key);
-	                            parents.add(current);
-	                            parentsMap.put(neighbor.key,parents);
-	                            }
-	                            else {
-	                                ArrayList<Node> parents=new ArrayList<Node>();
-	                                parents.add(current);
-	                                parentsMap.put(neighbor.key,parents);
-	                            }
-	                            frontier.add(neighbor);
-	                        }
-	                    }
-	                }
-	            }
-	            Collections.sort(frontier, new Comparator<Node>(){
-	            	public int compare(Node point1, Node point2){
-	            		if(point1.fscore == point2.fscore) return 0;
-	                    return (point1.fscore ) < (point2.fscore)? -1 : 1;
-	                     }
-	                });
-	
-	        }
-	        return null;
-	    }
-}
-
-
-class AstarResult {
-    public double score;
-    public HashMap<Long,ArrayList<Node>> routes;
-    AstarResult(double score, HashMap<Long, ArrayList<Node>> parentsMap){
-        this.score = score;
-        this.routes = new HashMap<Long, ArrayList<Node>>();
-        for (Map.Entry<Long, ArrayList<Node>> entry : parentsMap.entrySet()) {
-            Long key = entry.getKey();
-            ArrayList<Node> path = new ArrayList<Node>(entry.getValue());
-            this.routes.put(key,path);
-//            System.out.println(this.routes.get(key).get(0));
-        }
-    }
-}
 
 
 

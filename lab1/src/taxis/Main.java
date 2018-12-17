@@ -7,6 +7,7 @@ public class Main {
         public static void main(String[] args) throws IOException {
         	graph.createGraph();
         	graph.createTaxis();
+        	System.out.println("Taxis created");
         	graph.run();
         }
 
