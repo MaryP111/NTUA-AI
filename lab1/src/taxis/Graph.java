@@ -99,16 +99,10 @@ class aStar{
 	                        neighbor.fscore=totalDistance;
 	                        neighbor.distanceFromStart=current.distanceFromStart+neighbors.get(j).cost;
 	                        // set parent
-	                        if (parentsMap.containsKey(neighbor.key)) {
-	                        ArrayList<Node> parents=parentsMap.get(neighbor.key);
+	                      
+	                        ArrayList<Node> parents=new ArrayList<Node>();
 	                        parents.add(current);
 	                        parentsMap.put(neighbor.key,parents);
-	                        }
-	                        else {
-	                            ArrayList<Node> parents=new ArrayList<Node>();
-	                            parents.add(current);
-	                            parentsMap.put(neighbor.key,parents);
-	                        }
 	                        frontier.add(neighbor);
 	                    }
 	                }
@@ -147,6 +141,7 @@ public class Graph {
         public static final String clientPATH = "data/client.csv";
         public static final String nodesPATH = "data/nodes.csv";
         public static final String taxisPATH = "data/taxis.csv";
+        public static KmlExport kml=new KmlExport();
         public  HashMap<Long, ArrayList<Connection>> adj = new HashMap<Long, ArrayList<Connection>>();
         public static HashMap<List<Double>, Node> hashNodes = new HashMap<List<Double>, Node>();
         /* nodes are the discrete nodes of the graph */
@@ -255,6 +250,12 @@ public class Graph {
             	}
             	revert();
             }
+            aStarResult finalResult=taxiRoutes.get(taxiId);
+            //routes.get(endNode.key).size()
+            Node startNode= allTaxis.get(0).nearestNode;
+            Node endNode=revisedClientNode;
+            kml.kmlCreate(finalResult,startNode,endNode,"taxi_file.kml");
+            
             System.out.println(taxiId);
             
             
