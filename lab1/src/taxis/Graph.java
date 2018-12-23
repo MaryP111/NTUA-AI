@@ -165,7 +165,7 @@ public class Graph {
         public static final String clientPATH = "data/client.csv";
         public static final String nodesPATH = "data/nodes.csv";
         public static final String taxisPATH = "data/taxis.csv";
-        public static KmlExport kml=new KmlExport();
+        public static KmlExport kml = new KmlExport();
         public  HashMap<Long, ArrayList<Connection>> adj = new HashMap<Long, ArrayList<Connection>>();
         public static HashMap<List<Double>, Node> hashNodes = new HashMap<List<Double>, Node>();
         /* nodes are the discrete nodes of the graph */
@@ -279,8 +279,16 @@ public class Graph {
             Node startNode= allTaxis.get(0).nearestNode;
             Node endNode=revisedClientNode;
             kml.kmlCreate(finalResult,startNode,endNode,"taxi_file.kml");
-            
-            System.out.println(taxiId);
+//            kml.visualizeGraph(this);
+			kml.visualizeTaxis(this);
+			kml.visualizeClient(revisedClientNode);
+			List<Double> keyList = new ArrayList<Double>();
+			keyList.add(23.7347623);
+			keyList.add(37.9769002);
+			Node nodeOfInterest = hashNodes.get(keyList);
+//			System.out.println(nodeOfInterest.key);
+			kml.getNeighbors(this, nodeOfInterest.key);
+
             
             
         }
