@@ -4,12 +4,16 @@ import java.util.*;
 import java.io.*;
 import java.awt.Color;
 
+class Colors{
+	public static ArrayList<Color> colors = new ArrayList<Color>(Arrays.asList(Color.BLACK.darker(), Color.BLUE.darker()));
+	public static Iterator<Color> it = colors.iterator();
+}
 class KmlExport {
-	public void kmlCreate (aStarResult result,Node startNode,Node endNode,String fileName) {
-		Color green = Color.GREEN.darker(),color;
+	public void kmlCreate (aStarResult result, Node startNode, Node endNode, String fileName) {
+		Color color = Color.GREEN.darker();
 	    PrintWriter writer = null;
 		try {
-				//prints path of winner-taxi with alternative routes
+				// prints path of winner-taxi with alternative routes
 				writer = new PrintWriter(fileName);
 				writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 	            writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
@@ -17,13 +21,12 @@ class KmlExport {
 	            writer.println("<name>Taxi Routes</name>");
 	            writer.println("<Style id=\"green\">");
 	            writer.println("<LineStyle>");
-	            writer.println("<color>" + Integer.toHexString(green.getRGB()) + "</color>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
 	            writer.println("<width>4</width>");
 	            writer.println("</LineStyle>");
 	            writer.println("</Style>");
 				
-	             //this is to make the client point
-		
+	            // this is to make the client point
 			    writer.println("<Placemark>");
 			    writer.println("<name>Client</name>");
 			    writer.println("<Point>");
@@ -34,12 +37,12 @@ class KmlExport {
 			    writer.println("</Placemark>");
 
 			    writer.println("<Placemark>");
-			    writer.println("<name>Taxi's ID " + "</name>");
+			    writer.println("<name> Line " + "</name>");
 			    writer.println("<styleUrl>#green</styleUrl>");
 			    writer.println("<LineString>");
 			    writer.println("<altitudeMode>relative</altitudeMode>");
 			    writer.println("<coordinates>");
-			    printAllPaths(result,endNode,startNode,writer);
+			    printAllPaths(result, endNode, startNode, writer);
 			    writer.println("</coordinates>");
 				writer.println("</LineString>");
 				writer.println("</Placemark>"); 
