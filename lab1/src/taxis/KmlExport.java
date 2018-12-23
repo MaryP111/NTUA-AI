@@ -75,21 +75,160 @@ class KmlExport {
 	            isVisited.remove(u); 
 	            return ; 
 	        } 
-
-	        ArrayList<Node> parents =new ArrayList<Node>(result.routes.get(u.key));
-	        for(int j=0;j<parents.size();j++)   
-	        { 
-	            if (!isVisited.contains(parents.get(j))) 
-	            { 
-
-	                localPathList.add(parents.get(j)); 
-	                printAllPathsUtil(result,parents.get(j), d, isVisited, localPathList,writer); 
+	        ArrayList<Node> parents = new ArrayList<Node>(result.routes.get(u.key));
+	        for(int j=0; j<parents.size(); j++) { 
+	            if (!isVisited.contains(parents.get(j))) { 
+	                localPathList.add(parents.get(j));
+	                printAllPathsUtil(result, parents.get(j), d, isVisited, localPathList, writer);
+	                /* this needs adjustments */
+	                if (j!= parents.size() - 1) { 
+	                	writer.println("</coordinates>");
+	     				writer.println("</LineString>");
+	     				writer.println("</Placemark>"); 
+	     				/* next line */
+	     				writer.println("<Placemark>");
+	    			    writer.println("<name> Line " + "</name>");
+	    			    writer.println("<styleUrl>#green</styleUrl>");
+	    			    writer.println("<LineStyle>");
+	    			    writer.println("<color>#red</color>");
+	    			    writer.println("</LineStyle>");
+	    			    writer.println("<LineString>");
+	    			    writer.println("<altitudeMode>relative</altitudeMode>");
+	    			    writer.println("<coordinates>");
+	                }
 	                localPathList.remove(parents.get(j)); 
 	            } 
 	        } 
-
 	        isVisited.remove(u); 
-	    } 
+	} 
+	
+	public void visualizeGraph(Graph g) throws FileNotFoundException {
+		PrintWriter writer = null;
+		Color color = Color.GREEN.darker();
+		writer = new PrintWriter("graph.kml");
+//		Initialization
+		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
+        writer.println("<Document>");
+        writer.println("<name>Taxi Routes</name>");
+        writer.println("<Style id=\"green\">");
+        writer.println("<LineStyle>");
+        writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+        writer.println("<width>4</width>");
+        writer.println("</LineStyle>");
+        writer.println("</Style>");
+        
+        /* Add points placemarks */
+        for (Node node : g.nodes) {
+            writer.println("<Placemark>");
+    	    writer.println("<name>Client</name>");
+    	    writer.println("<Point>");
+    	    writer.println("<coordinates>");
+    	    writer.println(node.x + "," + node.y);
+    	    writer.println("</coordinates>");
+    	    writer.println("</Point>");
+    	    writer.println("</Placemark>");
+        }
+        
+//      Finish  
+		writer.println("</Document>");
+		writer.println("</kml>");
+		writer.close();
+	}
+	
+	public void getNeighbors(Graph g, long key) throws FileNotFoundException {
+		PrintWriter writer = null;
+		Color color = Color.GREEN.darker();
+		writer = new PrintWriter("neighbors.kml");
+//		Initialization
+		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
+        writer.println("<Document>");
+        writer.println("<name>Taxi Routes</name>");
+        writer.println("<Style id=\"green\">");
+        writer.println("<LineStyle>");
+        writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+        writer.println("<width>4</width>");
+        writer.println("</LineStyle>");
+        writer.println("</Style>");
+        
+        for (Connection cn : g.adj.get(key)) {
+        	Node node = cn.node;
+            writer.println("<Placemark>");
+      	    writer.println("<name>Client</name>");
+      	    writer.println("<Point>");
+      	    writer.println("<coordinates>");
+      	    writer.println(node.x + "," + node.y);
+      	    writer.println("</coordinates>");
+      	    writer.println("</Point>");
+      	    writer.println("</Placemark>");
+        }
+        
+//      Finish  
+		writer.println("</Document>");
+		writer.println("</kml>");
+		writer.close();
+	}
+	
+	public void visualizeTaxis(Graph g) throws FileNotFoundException {
+		PrintWriter writer = null;
+		writer = new PrintWriter("taxis.kml");
+		/* standard initialization */
+		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
+        writer.println("<Document>");
+        /* name */
+        writer.println("<name>Taxis Placemarks</name>");
+        /* style placemark of taxis */
+        writer.println("<Style id=\"pushpin\">");
+        writer.println("<IconStyle id=\"mystyle\">");
+        writer.println("<Icon>");
+        writer.println("<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>");
+        writer.println("<scale>1.0</scale>");
+        writer.println("</Icon>");
+        writer.println("</IconStyle>");
+        writer.println("</Style>");
+        
+        /* Add points placemarks */
+        for (Taxi taxi : g.allTaxis) {
+            writer.println("<Placemark>");
+    	    writer.println("<name>Taxi</name>");
+    	    writer.println("<styleUrl>#pushpin</styleUrl>");
+    	    writer.println("<Point>");
+    	    writer.println("<coordinates>");
+    	    writer.println(taxi.x + "," + taxi.y);
+    	    writer.println("</coordinates>");
+    	    writer.println("</Point>");
+    	    writer.println("</Placemark>");
+        }
+        
+//      Finish  
+		writer.println("</Document>");
+		writer.println("</kml>");
+		writer.close();
+	}
+	
+	public void visualizeClient(Node client) throws FileNotFoundException {
+		PrintWriter writer = null;
+		writer = new PrintWriter("client.kml");
+		/* standard initialization */
+		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
+        writer.println("<Document>");
+        /* name */
+        writer.println("<name>Client Placemark</name>");
+        writer.println("<Placemark>");
+	    writer.println("<name>Client</name>");
+	    writer.println("<Point>");
+	    writer.println("<coordinates>");
+	    writer.println(client.x + "," + client.y);
+	    writer.println("</coordinates>");
+	    writer.println("</Point>");
+	    writer.println("</Placemark>");
+		writer.println("</Document>");
+		writer.println("</kml>");
+        writer.close();
+	}
 
 }
 
