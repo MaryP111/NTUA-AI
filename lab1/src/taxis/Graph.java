@@ -149,15 +149,14 @@ class aStar{
 
 class aStarResult {
 	public double score;
-	public HashMap<Long,ArrayList<Node>> routes;
-	aStarResult(double score, HashMap<Long, ArrayList<Node>> parentsMap){
+	public HashMap<Long,HashSet<Node>> routes;
+	aStarResult(double score, HashMap<Long, HashSet<Node>> parentsMap){
 	    this.score = score;
-	    this.routes = new HashMap<Long, ArrayList<Node>>();
-	    for (Map.Entry<Long, ArrayList<Node>> entry : parentsMap.entrySet()) {
+	    this.routes = new HashMap<Long, HashSet<Node>>();
+	    for (Map.Entry<Long, HashSet<Node>> entry : parentsMap.entrySet()) {
 	        Long key = entry.getKey();
-	        ArrayList<Node> path = new ArrayList<Node>(entry.getValue());
-	        this.routes.put(key,path);
-	//        System.out.println(this.routes.get(key).get(0));
+	        HashSet<Node> path = new HashSet<Node>(entry.getValue());
+	        this.routes.put(key, path);
 	    }
 	}
 }
