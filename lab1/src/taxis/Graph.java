@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -69,52 +71,75 @@ class Taxi extends Point{
 
 class aStar{
 	public aStarResult aStarSearch(Graph g1, Node startNode, Node endNode) {
-	    HashMap<Long,ArrayList<Node>> parentsMap = new HashMap<Long,ArrayList<Node>>();
+		/* A* from start to end node.
+		 * The idea is to take the smaller node from the frontier and go to the neighbor with the smallest 
+		 * f score. At the meantime, update all the neighbors scores.
+		*/
+		/* parentsMap takes a node key and returns a list of fathers for this node */
+	    HashMap<Long, HashSet<Node>> parentsMap = new HashMap<Long,HashSet<Node>>();
 	    HashSet<Node> visited = new HashSet<Node>();
-	    ArrayList <Node> frontier = new ArrayList<>();
+        Comparator<Node> comp = new Comparator<Node>() {
+        	public int compare(Node point1, Node point2){
+        		if(point1.fscore == point2.fscore) return 0;
+                return (point1.fscore ) < (point2.fscore)? -1 : 1;
+                 }
+        };
+	    TreeSet<Node> frontier = new TreeSet<Node>(comp);
 	    startNode.distanceFromStart = 0;
 	    startNode.fscore = Distance.computeDistance(startNode, endNode);
 	    frontier.clear();
 	    visited.clear();
+	    parentsMap.clear();
 	    frontier.add(startNode);
 	    Node current = null;
+	    double tolerance = 0;
 	    while (!frontier.isEmpty()) {
-	    	System.out.println("Frontier size" + frontier.size());
-	        current = frontier.get(0);
-	        frontier.remove(0);
+	    	current = frontier.pollFirst();
 	        if(!visited.contains(current) ) {
 	            visited.add(current);
+	            int count = 0;
 	            if (current.key == endNode.key) {
-	                System.out.println("Found");
-	                return new aStarResult(current.distanceFromStart,parentsMap);
+	            	/* check */
+	            	for (Long key : parentsMap.keySet()) {
+	            		if (parentsMap.get(key).size() > 1) {
+	            			count++;
+	            		}
+	            	}
+//	            	System.out.println(count);
+	                return new aStarResult(current.distanceFromStart, parentsMap);
 	            }
 	            ArrayList<Connection> neighbors = g1.adj.get(current.key);
-	            for (int j=0;j<neighbors.size();j++) {
+	            for (int j=0; j<neighbors.size(); j++) {
 	                Node neighbor=neighbors.get(j).node;
 	                if (!visited.contains(neighbor) ){  
 	                    double predictedDistance = Distance.computeDistance(neighbor, endNode);
-	                    double totalDistance =current.distanceFromStart +neighbors.get(j).cost+ predictedDistance;
-	                    if(totalDistance < neighbor.fscore ){
-	                        // update n's distance
-	                        neighbor.fscore=totalDistance;
-	                        neighbor.distanceFromStart=current.distanceFromStart+neighbors.get(j).cost;
-	                        // set parent
-	                      
-	                        ArrayList<Node> parents=new ArrayList<Node>();
-	                        parents.add(current);
-	                        parentsMap.put(neighbor.key,parents);
+	                    double totalDistance = current.distanceFromStart + neighbors.get(j).cost + predictedDistance;
+	                    if( totalDistance < neighbor.fscore ){
+	                        if (totalDistance + tolerance < neighbor.fscore) {
+	                        	HashSet<Node> parents = new HashSet<Node>();
+	                        	parents.add(current);
+	                        	parentsMap.put(neighbor.key, parents);
+	                        }
+	                        else {
+	                        	HashSet<Node> parents = parentsMap.get(neighbor.key);
+	                        	parents.add(current);
+	                        	parentsMap.put(neighbor.key, parents);
+	                        }
+	                        neighbor.fscore = totalDistance;
+	                        neighbor.distanceFromStart = current.distanceFromStart + neighbors.get(j).cost;
 	                        frontier.add(neighbor);
+	                    }
+	                    else {
+	                    	/* maybe in the tolerance region ? */
+	                    	if (totalDistance < neighbor.fscore + tolerance) {
+	                    		HashSet<Node> parents = parentsMap.get(neighbor.key);
+	                    		parents.add(current);
+	                    		parentsMap.put(neighbor.key, parents);
+	                    	}
 	                    }
 	                }
 	            }
 	        }
-	        Collections.sort(frontier, new Comparator<Node>(){
-	        	public int compare(Node point1, Node point2){
-	        		if(point1.fscore == point2.fscore) return 0;
-	                return (point1.fscore ) < (point2.fscore)? -1 : 1;
-	                 }
-	            });
-
 	    }
 	    return null;
 	}
