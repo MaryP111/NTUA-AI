@@ -59,22 +59,19 @@ class KmlExport {
 		   
 	}
 
-	public void printAllPaths(aStarResult result,Node startNode, Node endNode,PrintWriter writer)  
-	    { 
-	        HashSet<Node> isVisited=new HashSet<Node>(); 
+	public void printAllPaths(aStarResult result, Node startNode, Node endNode, PrintWriter writer){ 
+	        HashSet<Node> isVisited = new HashSet<Node>(); 
 	        ArrayList<Node> pathList = new ArrayList<Node>(); 
 	        pathList.add(startNode); 
-	        printAllPathsUtil(result,startNode, endNode, isVisited, pathList,writer); 
-	    } 
+	        printAllPathsUtil(result, startNode, endNode, isVisited, pathList, writer);
+	} 
 	    
-	void printAllPathsUtil(aStarResult result ,Node u, Node d,HashSet<Node> isVisited,ArrayList <Node> localPathList,PrintWriter writer) { 
-
+	void printAllPathsUtil(aStarResult result, Node u, Node d, HashSet<Node> isVisited, ArrayList <Node> localPathList, PrintWriter writer) { 
 	        isVisited.add(u);
-	        if (u.key==d.key)  
-	        { 
-	        	for (int i=0;i<localPathList.size();i++){
+	        if (u.key == d.key) { 
+	        	for (int i=0; i<localPathList.size(); i++){
 	        		writer.println(localPathList.get(i).x + "," + localPathList.get(i).y);
-	        }    	 
+	        	}    	 
 	            isVisited.remove(u); 
 	            return ; 
 	        } 
