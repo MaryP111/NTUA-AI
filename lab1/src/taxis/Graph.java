@@ -257,8 +257,43 @@ public class Graph {
 
 	}
 
+	public void createTaxis() throws IOException {
+		FileReader fd = new FileReader(taxisPATH);
+		CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
+		for (CSVRecord line : parser) {
+			double x = Double.parseDouble(line.get(0));
+			double y = Double.parseDouble(line.get(1));
+			long address = Long.parseLong(line.get(2));
+			allTaxis.add(new Taxi(x, y, address, nodes));
+		}
+	}
 
 
+	public void run() throws IOException {
+		Reader fd = new FileReader(clientPATH);
+		CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
+		double x = 0.0;
+		double y = 0.0;
+		for (CSVRecord line : parser) {
+			x = Double.parseDouble(line.get(0));
+			y = Double.parseDouble(line.get(1));
+		}
+		Node clientNode = new Node(x, y, -1);
+		Node revisedClientNode = clientNode.findNearestNode(nodes);
+		aStarResult result = search.aStarSearch(this, revisedClientNode);
+		kml.kmlCreate(result, revisedClientNode, result.taxi, "solution.kml");
+		kml.visualizeTaxis(this);
+		kml.visualizeClient(revisedClientNode);
 
+	}
+}
 
+class Connection {
+	public Node node;
+	public double cost;
 
+	Connection(Node src, Node dst) {
+		this.node = dst;
+		this.cost = Distance.computeDistance(src, dst);
+	}
+}
