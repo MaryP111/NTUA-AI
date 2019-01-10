@@ -122,7 +122,7 @@ class KmlExport {
 	            return ; 
 	        } 
 	        ArrayList<Node> parents = new ArrayList<Node>(result.routes.get(u.key));
-	        for(int j=0; j<parents.size(); j++) { 
+	        for(int j=0; j< parents.size(); j++) { 
 	            if (!isVisited.contains(parents.get(j))) { 
 	                localPathList.add(parents.get(j));
 	                printAllPathsUtil(result, parents.get(j), d, isVisited, localPathList, writer);
@@ -134,9 +134,13 @@ class KmlExport {
 	     				/* next line */
 	     				writer.println("<Placemark>");
 	    			    writer.println("<name> Line " + "</name>");
-	    			    writer.println("<styleUrl>#green</styleUrl>");
+	    			    String color = "#green";
+	    			    if (Colors.it.hasNext()) {
+	    			    	color = Colors.it.next();
+	    			    }
+	    			    writer.println("<styleUrl>" + color + "</styleUrl>");
 	    			    writer.println("<LineStyle>");
-	    			    writer.println("<color>#red</color>");
+	    			    writer.println("<color>" + color + "</color>");
 	    			    writer.println("</LineStyle>");
 	    			    writer.println("<LineString>");
 	    			    writer.println("<altitudeMode>relative</altitudeMode>");
@@ -152,17 +156,20 @@ class KmlExport {
 		PrintWriter writer = null;
 		Color color = Color.GREEN.darker();
 		writer = new PrintWriter("graph.kml");
-//		Initialization
+		/* initialization */
 		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
         writer.println("<Document>");
-        writer.println("<name>Taxi Routes</name>");
+        writer.println("<name>Graph Points</name>");
+        
+        /* green line styling */
         writer.println("<Style id=\"green\">");
         writer.println("<LineStyle>");
         writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
         writer.println("<width>4</width>");
         writer.println("</LineStyle>");
         writer.println("</Style>");
+       
         
         /* Add points placemarks */
         for (Node node : g.nodes) {
@@ -186,7 +193,7 @@ class KmlExport {
 		PrintWriter writer = null;
 		Color color = Color.GREEN.darker();
 		writer = new PrintWriter("neighbors.kml");
-//		Initialization
+		/* initialization */
 		writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
         writer.println("<Document>");
