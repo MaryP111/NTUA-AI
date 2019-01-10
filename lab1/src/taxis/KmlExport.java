@@ -5,12 +5,12 @@ import java.io.*;
 import java.awt.Color;
 
 class Colors{
-	public static ArrayList<Color> colors = new ArrayList<Color>(Arrays.asList(Color.BLACK.darker(), Color.BLUE.darker()));
-	public static Iterator<Color> it = colors.iterator();
+	public static ArrayList<String> colors = new ArrayList<String>(Arrays.asList("#black", "#blue", "#red", "#green", "#cyan", "#yellow"));
+	public static Iterator<String> it = colors.iterator();
 }
 class KmlExport {
 	public void kmlCreate (aStarResult result, Node startNode, Node endNode, String fileName) {
-		Color color = Color.GREEN.darker();
+		Color color;
 	    PrintWriter writer = null;
 		try {
 				// prints path of winner-taxi with alternative routes
@@ -19,22 +19,68 @@ class KmlExport {
 	            writer.println("<kml xmlns=\"http://earth.google.com/kml/2.1\">");
 	            writer.println("<Document>");
 	            writer.println("<name>Taxi Routes</name>");
+	            
+	            /* Green line styling */
+	            color = Color.green.darker();
 	            writer.println("<Style id=\"green\">");
 	            writer.println("<LineStyle>");
 	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
 	            writer.println("<width>4</width>");
 	            writer.println("</LineStyle>");
 	            writer.println("</Style>");
+	            
+	            
+	            /* black line styling */
+	            color = Color.BLACK.darker();
+	            writer.println("<Style id=\"black\">");
+	            writer.println("<LineStyle>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+	            writer.println("<width>4</width>");
+	            writer.println("</LineStyle>");
+	            writer.println("</Style>");
+	            
+	            
+	            /* red line styling */
+	            color = Color.RED.darker();
+	            writer.println("<Style id=\"red\">");
+	            writer.println("<LineStyle>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+	            writer.println("<width>4</width>");
+	            writer.println("</LineStyle>");
+	            writer.println("</Style>");
+	            
+	            
+	            /* blue line styling */
+	            color = Color.BLUE.darker();
+	            writer.println("<Style id=\"blue\">");
+	            writer.println("<LineStyle>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+	            writer.println("<width>4</width>");
+	            writer.println("</LineStyle>");
+	            writer.println("</Style>");
+	            
+	            
+	            
+	            /* cyan line styling */
+	            color = Color.cyan.darker();
+	            writer.println("<Style id=\"cyan\">");
+	            writer.println("<LineStyle>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+	            writer.println("<width>4</width>");
+	            writer.println("</LineStyle>");
+	            writer.println("</Style>");
+	            
+	            
+	            /* yellow line styling */
+	            color = Color.yellow.darker();
+	            writer.println("<Style id=\"yellow\">");
+	            writer.println("<LineStyle>");
+	            writer.println("<color>" + Integer.toHexString(color.getRGB()) + "</color>");
+	            writer.println("<width>4</width>");
+	            writer.println("</LineStyle>");
+	            writer.println("</Style>");
+	            
 				
-	            // this is to make the client point
-			    writer.println("<Placemark>");
-			    writer.println("<name>Client</name>");
-			    writer.println("<Point>");
-			    writer.println("<coordinates>");
-			    writer.println(endNode.x + "," + endNode.y);
-			    writer.println("</coordinates>");
-			    writer.println("</Point>");
-			    writer.println("</Placemark>");
 
 			    writer.println("<Placemark>");
 			    writer.println("<name> Line " + "</name>");
