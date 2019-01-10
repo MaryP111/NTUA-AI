@@ -46,14 +46,30 @@ class Point {
 	}
 }
 
+class Node extends Point {
+	public long key;
+	public int numberOfNeighbors = 0;
+	public double distanceFromStart;
+	public double fscore;
+	public ArrayList<Long> addresses = new ArrayList<Long>();
 
-class Taxi extends Point{
-	public long id;
-	public Node nearestNode;
-	Taxi (double x, double y, long id, ArrayList<Node> nodes) {
+	Node(double x, double y, long key) {
 		this.x = x;
 		this.y = y;
-		this.id = id;				
+		this.key = key;
+		this.distanceFromStart = Double.POSITIVE_INFINITY;
+		this.fscore = Double.POSITIVE_INFINITY;
+	}
+}
+
+class Taxi extends Point {
+	public long id;
+	public Node nearestNode;
+
+	Taxi(double x, double y, long id, ArrayList<Node> nodes) {
+		this.x = x;
+		this.y = y;
+		this.id = id;
 		this.nearestNode = this.findNearestNode(nodes);
 	}
 }
