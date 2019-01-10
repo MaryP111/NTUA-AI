@@ -1,4 +1,5 @@
 package taxis;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -16,44 +17,33 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-class Point{
+class Point {
 	public double x, y;
-    @Override
-    public boolean equals(Object other) {
-        if (other == this) return true;
-        if (!(other instanceof Node)) return false;
-        Node casted_other = (Node) other;
-        return (this.x == casted_other.x && this.y == casted_other.y); 
-    }
-    public Node findNearestNode (ArrayList<Node> nodes ) {
-        double minDist, dist;
-        Node min;
-        min = nodes.get(0);
-        minDist = Distance.computeDistance(this, min);
-            for (int j = 1; j < nodes.size();j++) {
-                dist = Distance.computeDistance(this, nodes.get(j));
-                if (dist < minDist) {
-                    minDist = dist;
-                    min = nodes.get(j);
-            }
-        }
-        return min;
-    }
-}
 
-class Node extends Point{
-    public long key;
-    public int numberOfNeighbors = 0;
-    public double distanceFromStart;
-    public double fscore;
-    public ArrayList<Long> addresses = new ArrayList<Long>();
-    Node(double x, double y, long key){
-        this.x = x;
-        this.y = y;
-        this.key = key;
-        this.distanceFromStart = Double.POSITIVE_INFINITY;
-        this.fscore = Double.POSITIVE_INFINITY;
-    }
+	@Override
+	public boolean equals(Object other) {
+		if (other == this)
+			return true;
+		if (!(other instanceof Node))
+			return false;
+		Node casted_other = (Node) other;
+		return (this.x == casted_other.x && this.y == casted_other.y);
+	}
+
+	public Node findNearestNode(ArrayList<Node> nodes) {
+		double minDist, dist;
+		Node min;
+		min = nodes.get(0);
+		minDist = Distance.computeDistance(this, min);
+		for (int j = 1; j < nodes.size(); j++) {
+			dist = Distance.computeDistance(this, nodes.get(j));
+			if (dist < minDist) {
+				minDist = dist;
+				min = nodes.get(j);
+			}
+		}
+		return min;
+	}
 }
 
 
