@@ -1,7 +1,3 @@
-
-
-belongsTo(X,L):-node(_,_,L,X).
-
 oneway(L):-line(L,_,1,_,_,_,_,_).
 
 twoway(L):-line(L,_,0,_,_,_,_,_).
