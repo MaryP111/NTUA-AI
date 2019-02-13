@@ -185,7 +185,6 @@ class aStar {
 		HashSet<Node> visited = new HashSet<Node>();
 		JIPEngine jip = new JIPEngine();
 		jip.consultFile("data/input.pl");
-		jip.consultFile("data/taxis.pl");
 		JIPTermParser parser = jip.getTermParser();
 		JIPQuery jipQuery; 
 		JIPTerm term;
@@ -223,7 +222,7 @@ class aStar {
 					System.out.println("Found");
 					return new aStarResult(current, current.distanceFromStart, parentsMap);
 				}
-				jipQuery = jip.openSynchronousQuery(parser.parseTerm("canMoveFromTo(" + current.key + ",Y)."));
+				jipQuery = jip.openSynchronousQuery(parser.parseTerm("neighbor(" + current.key + ",Y)."));
 				term = jipQuery.nextSolution();
 				while(term!=null) {
 					BigDecimal bd = new BigDecimal(term.getVariablesTable().get("Y").toString());
