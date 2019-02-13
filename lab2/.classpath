@@ -6,7 +6,8 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/commons-csv-1.6-sources.jar"/>
-	<classpathentry kind="lib" path="lib/commons-csv-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/apidocs/commons-csv-1.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/apidocs/commons-csv-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/JIProlog/jipconsole.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
