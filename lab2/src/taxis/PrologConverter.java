@@ -38,9 +38,10 @@ public class PrologConverter {
 			double y = Double.parseDouble(line.get(1));
 			long lineId = Long.parseLong(line.get(2));
 			long nodeId = Long.parseLong(line.get(3));
-			if (lineId==prevLineId && i>0)
+			if (lineId == prevLineId && i>0)
 				writer.println("neighbors(" + prevNodeId + "," + nodeId + ")." );
 			writer.println("node(" + x + "," + y + ","+ lineId + "," + nodeId + ").");
+			writer.println("belongsTo(" + nodeId + "," + lineId + ").");
 			prevLineId=lineId;
 			prevNodeId=nodeId;
 			i=i+1;
