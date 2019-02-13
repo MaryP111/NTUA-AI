@@ -137,7 +137,6 @@ class aStar {
 		double h =1;
 		long lineKey=0;
 		jip.consultFile("data/lines.pl");
-		//JIPTermParser JIPparser = jip.getTermParser();
 		JIPQuery jipQuery;
 		JIPTerm term;
 		jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("line(" + lineKey  + ",A" + ",B" + ",C" + ",D" + ",E" + ",F" + ",G" + ")."));
@@ -146,30 +145,25 @@ class aStar {
 			int penaltylight;
 			int lanebonus;
 			int penaltyaccess;
-			int highway =Integer.parseInt(term.getVariablesTable().get("A").toString());
-			//System.out.println(highway);
+			int highway = Integer.parseInt(term.getVariablesTable().get("A").toString());
 			int lit = Integer.parseInt(term.getVariablesTable().get("C").toString());
-			//System.out.println(lit);
 			if (lit==0) {
 				penaltylight=1;
 			}
 			else
 				penaltylight=0;
 			int lanes = Integer.parseInt(term.getVariablesTable().get("D").toString());
-			//System.out.println(lanes);
 			if (lanes > 2)
 				lanebonus=1;
 			else
 				lanebonus=0;
 			int access = Integer.parseInt(term.getVariablesTable().get("E").toString());
-			//System.out.println(access);
 			if (access==0) {
 				penaltyaccess=1;
 			}
 			else
 				penaltyaccess=0;
 			int incline = Integer.parseInt(term.getVariablesTable().get("F").toString());
-			//System.out.println(incline);
 			int toll = Integer.parseInt(term.getVariablesTable().get("G").toString());
 		
 			h=h-0.1*highway+0.1*penaltylight-0.1*lanebonus+ penaltyaccess + incline*0.2+toll*0.2;
@@ -213,8 +207,6 @@ class aStar {
 				minimumDistance = distance;
 			}
 		}
-//	    System.out.println(endKeys.toString());
-//	    System.out.println(taxiKeysMap.toString());
 		startNode.fscore = minimumDistance;
 		frontier.clear();
 		visited.clear();
@@ -238,18 +230,14 @@ class aStar {
 					long nextKey = bd.longValue(); 
 					Node neighbor = g1.hashNodes.get(nextKey);
 					double h=heuristic(neighbor.address);
-					//System.out.println(current.key);
 					if (!visited.contains(neighbor)) {
 						minimumDistance = Double.POSITIVE_INFINITY;
-						//here h
 						for (Taxi taxi : g1.allTaxis) {
 							double distance = h*Distance.computeDistance(neighbor, taxi.nearestNode);
 							if (distance < minimumDistance) {
 								minimumDistance = distance;
 							}
 						}
-						//lamda
-						//neighbors.get(j).cost->compute
 						double predictedDistance = minimumDistance;
 						double cost=Distance.computeDistance(current,neighbor);
 						double totalDistance = current.distanceFromStart + cost + predictedDistance;
