@@ -23,15 +23,18 @@ public class PrologConverter {
 		HashMap<Long, String> lines = new HashMap<Long, String>();
 		FileReader fd = new FileReader(nodesPATH);
 		CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
-		PrintWriter writer = null;
-		PrintWriter writerLines= null;
-		PrintWriter writerClientDriver= null;
-		File file = new File("./data/input.pl");
+		PrintWriter writerNeighbors = null;
+		PrintWriter writerLines = null;
+		PrintWriter writerClientDriver = null;
+		PrintWriter writerNodes = null;
+		File file = new File("./data/neighbors.pl");
 		File file2 = new File("./data/lines.pl");
 		File file3 = new File("./data/client_driver.pl");
-		writer = new PrintWriter(file);
+		File file4 = new File("./data/nodes.pl");
+		writerNeighbors = new PrintWriter(file);
 		writerLines = new PrintWriter(file2);
 		writerClientDriver = new PrintWriter(file3);
+		writerNodes = new PrintWriter(file4);
 		
 		/* read lines */
 		FileReader fd4 = new FileReader(linesPATH);
@@ -105,6 +108,7 @@ public class PrologConverter {
 		
 		
 		/* read nodes */
+		/* attention: the graph is created as transpose */
 		long prevLineId=0;
 		long prevNodeId=0;
 		int i=0;
@@ -113,19 +117,23 @@ public class PrologConverter {
 			double y = Double.parseDouble(line.get(1));
 			long lineId = Long.parseLong(line.get(2));
 			long nodeId = Long.parseLong(line.get(3));
-			writer.println("node(" + x + "," + y + ","+ lineId + "," + nodeId + ").");
+			writerNodes.println("node(" + x + "," + y + ","+ lineId + "," + nodeId + ").");
 			if (lines.get(lineId) == "yes") {
 				/* one way line */
-				writer.println("neighbor(" + prevNodeId + "," + nodeId + ").");
+				if (prevNodeId!=0)
+					writerNeighbors.println("neighbor(" + nodeId + "," + prevNodeId + ").");
 			}
 			else if (lines.get(lineId) == "no") {
 				/* two way line */
-				writer.println("neighbor(" + nodeId + "," + prevNodeId + ").");
-				writer.println("neighbor(" + prevNodeId + "," + nodeId + ").");
+				if (prevNodeId!=0) {
+					writerNeighbors.println("neighbor(" + nodeId + "," + prevNodeId + ").");
+					writerNeighbors.println("neighbor(" + prevNodeId + "," + nodeId + ").");
+				}
 			}
 			else {
 				/* reverse line */
-				writer.println("neighbor(" + nodeId + "," + prevNodeId + ").");
+				if(prevNodeId!=0)
+					writerNeighbors.println("neighbor(" + prevNodeId + "," + nodeId + ").");
 			}
 			prevLineId = lineId;
 			prevNodeId = nodeId;
@@ -144,7 +152,7 @@ public class PrologConverter {
 //			int persons  = Integer.parseInt(line.get(4));
 //			String language = line.get(5);
 //			int luggage = Integer.parseInt(line.get(6));
-			writer.println("client(" + "23.733912" + "," + "37.975687" + "," + "23.772518" +"," + "38.012301" + "0" + "," + 0 + "," + 3 + "," + "greek" + "," + "1" + ").");
+			//writer.println("client(" + "23.733912" + "," + "37.975687" + "," + "23.772518" +"," + "38.012301" + "0" + "," + 0 + "," + 3 + "," + "greek" + "," + "1" + ").");
 			writerClientDriver.println("client(" + "23.733912" + "," + "37.975687" + "," + "23.772518" +"," + "38.012301" + "0" + "," + 0 + "," + 3 + "," + "greek" + "," + "1" + ").");
 //		}
 
@@ -166,7 +174,6 @@ public class PrologConverter {
 			List<String> capacities = new ArrayList<String>(Arrays.asList(hasCapacity.split("-")));
 			int capacity = Integer.parseInt(capacities.get(1));
 			String languages = line.get(5);
-			//String[] languageList = languages.split(" | ");
 			double rating =Double.parseDouble(line.get(6));
 			String longDistance = line.get(7);
 			int dLong;
@@ -210,14 +217,15 @@ public class PrologConverter {
 			if (!line.get(1).equals("")) {
 					String traffic=line.get(2);
 					if (!traffic.equals("")) {
-						writer.println("traffic(" + id + ",1,2).");
-						writer.println("traffic(" + id + ",2,1).");
-						writer.println("traffic(" + id + ",3,2).");
+						writerNodes.println("traffic(" + id + ",1,2).");
+						writerNodes.println("traffic(" + id + ",2,1).");
+						writerNodes.println("traffic(" + id + ",3,2).");
 				
 					}
 			}
 		}
-		writer.close();
+		writerNeighbors.close();
+		writerNodes.close();
 		writerLines.close();
 		writerClientDriver.close();
 	}

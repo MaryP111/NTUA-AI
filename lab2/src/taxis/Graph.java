@@ -97,7 +97,6 @@ class Taxi extends Point {
 		ArrayList<String> languageList =new ArrayList<String>();
 		term=jipQuery.nextSolution();
 		if (term != null) {
-			//System.out.println("got in");
 			available = Integer.parseInt(term.getVariablesTable().get("C").toString());
 			capacity = Integer.parseInt(term.getVariablesTable().get("D").toString());
 			longDistanceTaxi = Integer.parseInt(term.getVariablesTable().get("F").toString());
@@ -106,14 +105,12 @@ class Taxi extends Point {
 		jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("languages(" + taxiId +",L)."));
 		term=jipQuery.nextSolution();
 		while(term!=null) {
-			//System.out.println("got in");
 			languageList.add(term.getVariablesTable().get("L").toString());
 			term =jipQuery.nextSolution();
 		}
 		jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("client(23.733912,37.975687" + ",A1,B1,C1,D1,E1,F1)."));
 		term=jipQuery.nextSolution();
 		if (term!=null) {
-			//System.out.println("got in");
 			longDistanceClient=Integer.parseInt(term.getVariablesTable().get("C1").toString());
 			persons= Integer.parseInt(term.getVariablesTable().get("D1").toString());
 			language=term.getVariablesTable().get("E1").toString();
@@ -128,15 +125,20 @@ class Taxi extends Point {
 	}
 }
 
+class ChosenTaxi {
+	public long taxiKey;
+	public double taxiRating;
+	ChosenTaxi(long taxiKey, double taxiRating){
+		this.taxiKey = taxiKey;
+		this.taxiRating = taxiRating;
+	}
+}
 class aStar {
-	
 	public JIPEngine jip = new JIPEngine();
 	JIPTermParser JIPparser = jip.getTermParser();
-	
 	public double heuristic(long key) throws JIPSyntaxErrorException,IOException {
 		double h =1;
 		long lineKey=0;
-		jip.consultFile("data/lines.pl");
 		JIPQuery jipQuery;
 		JIPTerm term;
 		jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("line(" + lineKey  + ",A" + ",B" + ",C" + ",D" + ",E" + ",F" + ",G" + ")."));
@@ -165,12 +167,15 @@ class aStar {
 				penaltyaccess=0;
 			int incline = Integer.parseInt(term.getVariablesTable().get("F").toString());
 			int toll = Integer.parseInt(term.getVariablesTable().get("G").toString());
-		
+			
 			h=h-0.1*highway+0.1*penaltylight-0.1*lanebonus+ penaltyaccess + incline*0.2+toll*0.2;
-			System.out.println(h);
+			//h=Math.max(penaltyaccess,Math.max(penaltylight,Math.max(toll,Math.min(1,1+(lanebonus+incline-highway)/10))));
+			
+			//System.out.println(h);
 		}
 		return h;
 	}
+	
 	public aStarResult aStarSearch(Graph g1, Node startNode) throws JIPSyntaxErrorException,IOException{
 		/*
 		 * A* from start to end node. The idea is to take the smaller node from the
@@ -178,14 +183,12 @@ class aStar {
 		 * update all the neighbors scores.
 		 */
 		/* parentsMap takes a node key and returns a list of fathers for this node */
-		double lambda = 0.5;
 		ArrayList<Long> endKeys = new ArrayList<Long>();
 		HashMap<Long, Long> taxiKeysMap = new HashMap<Long, Long>();
 		HashMap<Long, HashSet<Node>> parentsMap = new HashMap<Long, HashSet<Node>>();
 		HashSet<Node> visited = new HashSet<Node>();
-		JIPEngine jip = new JIPEngine();
-		jip.consultFile("data/input.pl");
-		JIPTermParser parser = jip.getTermParser();
+		jip.consultFile("data/neighbors.pl");
+		jip.consultFile("data/lines.pl");
 		JIPQuery jipQuery; 
 		JIPTerm term;
 		Comparator<Node> comp = new Comparator<Node>() {
@@ -212,7 +215,7 @@ class aStar {
 		parentsMap.clear();
 		frontier.add(startNode);
 		Node current = null;
-		double tolerance = 200;
+		double tolerance = 0;
 		while (!frontier.isEmpty()) {
 			current = frontier.pollFirst();
 			if (!visited.contains(current)) {
@@ -220,13 +223,13 @@ class aStar {
 				if (endKeys.contains(current.key)) {
 					System.out.println(taxiKeysMap.get(current.key));
 					System.out.println("Found");
-					return new aStarResult(current, current.distanceFromStart, parentsMap);
+					return new aStarResult(current, taxiKeysMap.get(current.key),current.distanceFromStart, parentsMap);
 				}
-				jipQuery = jip.openSynchronousQuery(parser.parseTerm("neighbor(" + current.key + ",Y)."));
+				jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("neighbor(" + current.key + ",Y)."));
 				term = jipQuery.nextSolution();
 				while(term!=null) {
 					BigDecimal bd = new BigDecimal(term.getVariablesTable().get("Y").toString());
-					long nextKey = bd.longValue(); 
+					long nextKey = bd.longValue();
 					Node neighbor = g1.hashNodes.get(nextKey);
 					double h=heuristic(neighbor.address);
 					if (!visited.contains(neighbor)) {
@@ -273,14 +276,14 @@ class aStar {
 		return null;
 	}
 }
-
 class aStarResult {
 	public Node taxi;
 	public double score;
 	public HashMap<Long, HashSet<Node>> routes;
-
-	aStarResult(Node taxi, double score, HashMap<Long, HashSet<Node>> parentsMap) {
+	public long taxiId;
+	aStarResult(Node taxi, long taxiId, double score, HashMap<Long, HashSet<Node>> parentsMap) {
 		this.taxi = taxi;
+		this.taxiId = taxiId;
 		this.score = score;
 		this.routes = new HashMap<Long, HashSet<Node>>();
 		for (Map.Entry<Long, HashSet<Node>> entry : parentsMap.entrySet()) {
@@ -296,22 +299,29 @@ public class Graph {
 	public static final String nodesPATH = "data/nodes.csv";
 	public static final String taxisPATH = "data/taxis.csv";
 	public static KmlExport kml = new KmlExport();
+	JIPEngine jip = new JIPEngine();
+	JIPTermParser parser = jip.getTermParser();
 	public HashMap<Long, ArrayList<Connection>> adj = new HashMap<Long, ArrayList<Connection>>();
-	//public static HashMap<List<Double>, Node> hashNodes = new HashMap<List<Double>, Node>();
 	public HashMap<Long, Node> hashNodes = new HashMap<Long, Node>();
 	/* nodes are the discrete nodes of the graph */
 	public ArrayList<Node> nodes;
 	/* all noNodes are the nodes of the graph as read from the csv file */
 	public ArrayList<Node> allNodes = new ArrayList<Node>();
 	public ArrayList<Taxi> allTaxis = new ArrayList<Taxi>();
+	public ArrayList<Long> chosenTaxis= new ArrayList<Long>();
 	private static aStar search = new aStar();
-	
 
+	
+	public void revertAStar() {
+		for (Node node : allNodes) {
+			node.fscore = Double.POSITIVE_INFINITY;
+			node.distanceFromStart = Double.POSITIVE_INFINITY;
+		}
+	}
 	public void createGraph() throws IOException,JIPSyntaxErrorException {
 		FileReader fd = new FileReader(nodesPATH);
 		CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
 		for (CSVRecord line : parser) {
-			//long key = line.getRecordNumber();
 			double x = Double.parseDouble(line.get(0));
 			double y = Double.parseDouble(line.get(1));
 			long address = Long.parseLong(line.get(2));
@@ -319,21 +329,14 @@ public class Graph {
 			List<Double> keyList = new ArrayList<Double>();
 			keyList.add(x);
 			keyList.add(y);
-			//Node n = hashNodes.get(keyList);
-			Node n= hashNodes.get(key);
+			Node n = hashNodes.get(key);
 			if (n == null) {
 				n = new Node(x, y,key,address);
-				//n.addresses.add(address);
-				//hashNodes.put(keyList, n);
 				hashNodes.put(key,n);
-			} else {
-//				if (n.addresses.contains(address) == false)
-//					n.addresses.add(address);
 			}
 			allNodes.add(n);
 		}
 		fd.close();
-//		
 		System.out.println("Nodes created successfully");
 
 	}
@@ -353,6 +356,31 @@ public class Graph {
 			}
 		}
 	}
+	
+	public void sortTaxis() throws IOException,JIPSyntaxErrorException {
+		jip.consultFile("./data/client_driver.pl");
+		JIPTermParser JIPparser = jip.getTermParser();
+		JIPQuery jipQuery; 
+		JIPTerm term;
+		Comparator<ChosenTaxi> comp = new Comparator<ChosenTaxi>() {
+			public int compare(ChosenTaxi point1, ChosenTaxi point2) {
+				if (point1.taxiRating == point2.taxiRating)
+					return 0;
+				return (point1.taxiRating) < (point2.taxiRating) ? -1 : 1;
+			}
+		};
+		TreeSet<ChosenTaxi> arr = new TreeSet<ChosenTaxi>(comp);
+		for (int i=0;i<chosenTaxis.size();i++) {
+			jipQuery = jip.openSynchronousQuery(JIPparser.parseTerm("rating(" + chosenTaxis.get(i) + ",R)."));
+			term = jipQuery.nextSolution();
+			if (term!=null) {
+				double rating = Double.parseDouble(term.getVariablesTable().get("R").toString());
+				arr.add(new ChosenTaxi(chosenTaxis.get(i), rating));
+			}	
+		}
+		
+		
+	}
 
 
 	public void run() throws IOException {
@@ -360,18 +388,42 @@ public class Graph {
 		CSVParser parser = CSVParser.parse(fd, CSVFormat.RFC4180);
 		double x = 0.0;
 		double y = 0.0;
-//		for (CSVRecord line : parser) {
-//			x = Double.parseDouble(line.get(0));
-//			y = Double.parseDouble(line.get(1));
-//		}
-		x=23.733912;
-		y=37.975687;
+		double destX = 0.0;
+		double destY = 0.0;
+		int k = 3;
+		for (CSVRecord line : parser) {
+			x = Double.parseDouble(line.get(0));
+			y = Double.parseDouble(line.get(1));
+			destX = Double.parseDouble(line.get(2));
+			destY = Double.parseDouble(line.get(3));
+		}
 		Node clientNode = new Node(x, y, -1,-1);
 		Node revisedClientNode = clientNode.findNearestNode(allNodes);
-		aStarResult result = search.aStarSearch(this, revisedClientNode);
-		kml.kmlCreate(result, revisedClientNode, result.taxi, "solution.kml");
+		Node finishNode = new Node(destX, destY, -1, -1);
+		Node revisedFinishNode = finishNode.findNearestNode(allNodes);
 		kml.visualizeTaxis(this);
 		kml.visualizeClient(revisedClientNode);
+		for (int i=0; i<k; i++) {
+			aStarResult result = search.aStarSearch(this, revisedClientNode);
+			//System.out.println(result.score);
+			Taxi temp = null;
+			for (Taxi taxi : allTaxis) {
+				if (taxi.id == result.taxiId) {
+					temp = taxi;
+					chosenTaxis.add(temp.id);
+				}
+			}
+			this.revertAStar();
+			allTaxis.remove(temp);
+			kml.kmlCreate(result, revisedClientNode, result.taxi, "solution" + i + ".kml");
+		}
+		allTaxis.clear();
+		allTaxis.add(new Taxi(x, y, 100, allNodes));
+		aStarResult result = search.aStarSearch(this, revisedFinishNode);
+		kml.kmlCreate(result, revisedFinishNode, revisedClientNode, "solution.kml");
+		
+
+
 
 	}
 }
