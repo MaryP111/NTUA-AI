@@ -112,10 +112,14 @@ class aStar {
 		visited.clear();
 		parentsMap.clear();
 		frontier.add(startNode);
+		if (frontier.isEmpty()) {
+			System.out.println("it is");
+		}
 		Node current = null;
 		double tolerance = 200;
 		while (!frontier.isEmpty()) {
 			current = frontier.pollFirst();
+			System.out.println(current.key);
 			if (!visited.contains(current)) {
 				visited.add(current);
 				if (endKeys.contains(current.key)) {
@@ -153,6 +157,7 @@ class aStar {
 							/* maybe in the tolerance region ? */
 							if (totalDistance < neighbor.fscore + tolerance) {
 								HashSet<Node> parents = parentsMap.get(neighbor.key);
+								System.out.println(current.key);
 								parents.add(current);
 								parentsMap.put(neighbor.key, parents);
 							}
@@ -198,6 +203,7 @@ public class Graph {
 	public ArrayList<Node> allNodes = new ArrayList<Node>();
 	public ArrayList<Taxi> allTaxis = new ArrayList<Taxi>();
 	private static aStar search = new aStar();
+
 
 	public void createGraph() throws IOException {
 		FileReader fd = new FileReader(nodesPATH);
